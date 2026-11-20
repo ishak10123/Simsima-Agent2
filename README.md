@@ -2,7 +2,7 @@
 
 A local MCP/CLI publishing tool controlled by the account owner through a chat assistant. The local tool executes the requested action and does not call another model or require a model API key.
 
-This private repository contains the application source for review. Runtime credentials, browser profiles, local drafts, operation databases and account-specific publishing records are not included.
+This repository contains the application source for review. Runtime credentials, browser profiles, local drafts, operation databases and account-specific publishing records are not included.
 
 ## Current implementation
 
@@ -47,4 +47,4 @@ npm run check
 
 The source snapshot was taken after the existing 36-test suite passed. Browser tests intercept platform requests and use temporary profiles; they do not publish real posts.
 
-The repository is private. Access for review can be arranged with the owner if required.
+The source code is available for review at https://github.com/ishak10123/Simsima-Agent2.
