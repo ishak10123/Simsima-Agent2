@@ -1,0 +1,30 @@
+{
+  "name": "simsima-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP tools for publishing to X through Brave, without a second model.",
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "doctor": "node src/cli.js doctor",
+    "account": "node src/cli.js account",
+    "brave": "node scripts/start-brave.js",
+    "session": "node scripts/import-session.js",
+    "youtube-session": "node scripts/import-session.js --youtube",
+    "youtube-account": "node src/cli.js youtube-account",
+    "connect": "node scripts/register-mcp.js --write",
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test:browser": "node --test test/browser.integration.test.js",
+    "check": "node scripts/check.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/server": "2.4.0",
+    "playwright-core": "1.65.1",
+    "twitter-text": "3.1.0",
+    "zod": "4.6.7"
+  }
+}

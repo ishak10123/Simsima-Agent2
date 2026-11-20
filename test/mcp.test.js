@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { Client } from '@modelcontextprotocol/client';
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { projectRoot } from '../src/config.js';
+
+test('the real stdio MCP server advertises three platforms and accepts draft/read calls', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'simsima-mcp-'));
+  const transport = new StdioClientTransport({ command: process.execPath, args: [join(projectRoot, 'src/server.js')],
+    cwd: projectRoot, env: { ...process.env, SIMSIMA_DATA_DIR: dir, SIMSIMA_DISCORD_CONFIG: join(dir, 'discord.json'), SIMSIMA_DISCORD_WEBHOOK_URL: '' }, stderr: 'pipe' });
+  let stderr = '';
+  transport.stderr.on('data', chunk => { stderr += chunk; });
+  const client = new Client({ name: 'simsima-test', version: '0.1.0' });
+  t.after(async () => { await client.close(); await rm(dir, { recursive: true, force: true }); });
+  await client.connect(transport);
+  const { tools } = await client.listTools();
+  assert.equal(tools.length, 12);
+  assert.equal(tools.find(tool => tool.name === 'x_publish_prepared_post').annotations.destructiveHint, true);
+  const prepared = await client.callTool({ name: 'x_prepare_post', arguments: { text: 'مرحبا', account: '@alice' } });
+  assert.equal(prepared.isError, undefined, stderr);
+  assert.equal(prepared.structuredContent.account, '@alice');
+  const missing = await client.callTool({ name: 'x_get_operation', arguments: { request_id: 'not-found' } });
+  assert.equal(missing.isError, true);
+  assert.equal(missing.structuredContent.error.code, 'operation_not_found');
+  const youtube=await client.callTool({name:'youtube_prepare_post',arguments:{text:'منشور قناة YouTube',channel_id:'UCabcdefghijklmnopqrstuv'}});
+  assert.equal(youtube.isError,undefined,stderr);
+  assert.equal(youtube.structuredContent.platform,'youtube');
+  const wrongPlatform=await client.callTool({name:'x_publish_prepared_post',arguments:{draft_id:youtube.structuredContent.draft_id,request_id:'wrong-platform-001'}});
+  assert.equal(wrongPlatform.isError,true);
+  assert.equal(wrongPlatform.structuredContent.error.code,'platform_mismatch');
+  const discord = await client.callTool({ name: 'discord_prepare_post', arguments: { text: 'منشور Discord', channel_id: '123456789012345678' } });
+  assert.equal(discord.isError, undefined, stderr);
+  assert.equal(discord.structuredContent.platform, 'discord');
+  assert.equal(discord.structuredContent.channel_id, '123456789012345678');
+  const status = await client.callTool({ name: 'discord_status', arguments: {} });
+  assert.equal(status.structuredContent.configured, false);
+  assert.equal(tools.find(tool => tool.name === 'discord_publish_prepared_post').annotations.destructiveHint, true);
+});

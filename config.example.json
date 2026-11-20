@@ -1,0 +1,6 @@
+{
+  "cdpEndpoint": "http://127.0.0.1:9222",
+  "bravePath": "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
+  "dataDir": ".data",
+  "timeoutMs": 30000
+}
